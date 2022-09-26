@@ -51,7 +51,7 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 	for {
 
 		// If max_iterations is given, check whether we should stop
-		if req.MaxIter != 0 { // MaxIter has been given
+		if req.MaxIter != 0 { // Only if MaxIter has been given
 			if req.MaxIter == iter {
 				break
 			}
@@ -77,7 +77,12 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 		rsp.NumCollected += len(tweets)
 
 		// Find and set the new minID
-		newMinID := getMinID(tweets)
+		newMinID, err := getMinID(tweets)
+		if err != nil {
+			log.Printf("failed to parse id: %s", err.Error())
+			rsp.Error = err.Error()
+			break
+		}
 		if minID == newMinID {
 			log.Printf("no new min ID retrieved (%d)", minID)
 			break
