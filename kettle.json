@@ -1,0 +1,10 @@
+{
+  "name": "tweet-destroyer",
+  "config": {
+    "runtime": "go113",
+    "cloud_provider": "gcloud",
+    "deployment_type": "run",
+    "entry_function": "main",
+    "deploy_settings": {}
+  }
+}
