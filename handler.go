@@ -43,16 +43,20 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 	iter := 0
 
 	// We keep running counters for the response
-	rsp := deleteResponse{}
-	rsp.DryRun = req.DryRun
+	rsp := deleteResponse{
+		DryRun: req.DryRun,
+	}
 
 	// Iterate over tweets and find candidates to delete
 	for {
 
-		if iter == req.MaxIter {
-			break
+		// If max_iterations is given, check whether we should stop
+		if req.MaxIter != 0 { // MaxIter has been given
+			if req.MaxIter == iter {
+				break
+			}
+			iter += 1
 		}
-		iter += 1
 
 		// Retrieve a batch of tweets up to and including minID
 		tweets, err := getTweets(twitterClient, minID)
@@ -65,11 +69,11 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 			// so we "successfully fail"
 			break
 		}
+
 		if len(tweets) == 0 {
 			log.Printf("no tweets retrieved (minID=%d)", minID)
 			break
 		}
-
 		rsp.NumCollected += len(tweets)
 
 		// Find and set the new minID
@@ -92,9 +96,7 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 		}
 
 		numDeleted, err := deleteTweets(twitterClient, tweetsToDelete, req.DryRun)
-
-		// incrementing before handling the err to account for partial success
-		rsp.NumDeleted += numDeleted
+		rsp.NumDeleted += numDeleted // incrementing before handling the err to account for partial success
 		if err != nil {
 			rsp.Error = err.Error()
 			break

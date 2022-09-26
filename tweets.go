@@ -3,11 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
+
+func handleResponse(action string, rsp *http.Response) error {
+	body, err := io.ReadAll(rsp.Body)
+	if err != nil {
+		return err
+	}
+	log.Printf("failed to call %s (status=%d): %s", action, rsp.StatusCode, string(body))
+	return fmt.Errorf("status=%d: %s", rsp.StatusCode, string(body))
+}
 
 // getTwitterClient returns a new go-twitter client using secrets
 // that have been stored in Google Cloud's Secret Manager
@@ -41,7 +52,7 @@ func getTweets(client *twitter.Client, maxID int64) ([]twitter.Tweet, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("response: %d", resp.StatusCode)
+		return nil, handleResponse("UserTimeline", resp)
 	}
 	return tweets, nil
 }
@@ -87,7 +98,7 @@ func deleteTweet(client *twitter.Client, tweet *twitter.Tweet) (*twitter.Tweet, 
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("response: %d", resp.StatusCode)
+		return nil, handleResponse("Destroy", resp)
 	}
 	return tweet, nil
 }
@@ -104,8 +115,6 @@ func deleteTweets(client *twitter.Client, tweets []*twitter.Tweet, dryRun bool) 
 				log.Printf("%v", err.Error())
 				break
 			}
-
-			// TODO? - store the deleted tweet
 		}
 		numDeleted += 1
 	}

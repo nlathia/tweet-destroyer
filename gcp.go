@@ -28,7 +28,7 @@ func readSecret(ctx context.Context) (*Secret, error) {
 	// Build the secret access request
 	accessRequest := &secretmanagerpb.AccessSecretVersionRequest{
 		Name: fmt.Sprintf(
-			"projects/%s/secrets/%s/versions/1",
+			"projects/%s/secrets/%s/versions/3",
 			"1086379384073",
 			"twitter-api",
 		),
