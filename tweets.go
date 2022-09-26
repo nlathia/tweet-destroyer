@@ -114,7 +114,7 @@ func filterTweets(tweets []twitter.Tweet) ([]*twitter.Tweet, error) {
 
 // deleteTweet destroys a given tweet and returns it if successful
 func deleteTweet(client *twitter.Client, tweet *twitter.Tweet) (*twitter.Tweet, error) {
-	log.Printf("destroying: id=%s (%d)", tweet.IDStr, tweet.ID)
+	log.Printf("destroying: id=%s (%d): %s", tweet.IDStr, tweet.ID, tweet.Text)
 	tweetID, err := parseID(tweet.IDStr)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,6 @@ func deleteTweet(client *twitter.Client, tweet *twitter.Tweet) (*twitter.Tweet, 
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-
 		if resp.StatusCode == 144 {
 			log.Printf("already destroyed: id=%s (%d)", tweet.IDStr, tweet.ID)
 			return tweet, nil
