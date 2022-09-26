@@ -77,12 +77,12 @@ func getMinID(tweets []twitter.Tweet) (int64, error) {
 }
 
 // filterTweets returns a slice of tweets that are candidates for deletion
-func filterTweets(tweets []twitter.Tweet) ([]*twitter.Tweet, error) {
+func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 	if len(tweets) == 0 {
-		return []*twitter.Tweet{}, nil
+		return []twitter.Tweet{}, nil
 	}
 
-	result := []*twitter.Tweet{}
+	result := []twitter.Tweet{}
 	for _, tweet := range tweets {
 		delete, err := shouldDelete(tweet)
 		if err != nil {
@@ -90,7 +90,7 @@ func filterTweets(tweets []twitter.Tweet) ([]*twitter.Tweet, error) {
 		}
 		if delete {
 			log.Printf("candidate for deletion: id=%s", tweet.IDStr)
-			result = append(result, &tweet)
+			result = append(result, tweet)
 		}
 	}
 
@@ -99,40 +99,44 @@ func filterTweets(tweets []twitter.Tweet) ([]*twitter.Tweet, error) {
 }
 
 // deleteTweet destroys a given tweet and returns it if successful
-func deleteTweet(client *twitter.Client, tweet *twitter.Tweet) (*twitter.Tweet, error) {
-	log.Printf("destroying: id=%s (%d): %s", tweet.IDStr, tweet.ID, tweet.Text)
+func deleteTweet(client *twitter.Client, tweet twitter.Tweet) error {
+	log.Printf("destroying: id=%s (%s): %s", tweet.IDStr, tweet.CreatedAt, tweet.Text)
 	tweetID, err := parseID(tweet.IDStr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tweet, resp, err := client.Statuses.Destroy(tweetID, &twitter.StatusDestroyParams{})
+	_, resp, err := client.Statuses.Destroy(tweetID, nil)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			log.Printf("already destroyed: id=%s (%d)", tweet.IDStr, tweet.ID)
-			return nil, nil
+			return nil
 		}
 
 		log.Printf("failed to call destroy (status=%d)", resp.StatusCode)
-		return nil, err
+		return err
 	}
-	return tweet, nil
+	return nil
 }
 
 // deleteTweets destroys a slice of tweets and returns a count. Deletion will only
 // happen if dryRun=false
-func deleteTweets(client *twitter.Client, tweets []*twitter.Tweet, dryRun bool) (int, error) {
+func deleteTweets(client *twitter.Client, tweets []twitter.Tweet, dryRun bool) (int, error) {
+	if len(tweets) == 0 {
+		log.Printf("no tweets are eligible to be deleted")
+		return 0, nil
+	}
+
 	numDeleted := 0
-	var err error
 	for _, tweet := range tweets {
 		if !dryRun {
-			_, err = deleteTweet(client, tweet)
+			err := deleteTweet(client, tweet)
 			if err != nil {
 				log.Printf("error destroying id=%s, %v", tweet.IDStr, err.Error())
-				break
+				return numDeleted, err
 			}
 		}
 		numDeleted += 1
 	}
-	return numDeleted, err
+	return numDeleted, nil
 }

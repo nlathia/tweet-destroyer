@@ -95,10 +95,6 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 			rsp.Error = err.Error()
 			break
 		}
-		if len(tweets) == 0 {
-			log.Printf("no tweets are eligible to be deleted (minID=%d)", minID)
-			continue
-		}
 
 		numDeleted, err := deleteTweets(twitterClient, tweetsToDelete, req.DryRun)
 		rsp.NumDeleted += numDeleted // incrementing before handling the err to account for partial success

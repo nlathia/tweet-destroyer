@@ -10,6 +10,8 @@ This Cloud Run service trawls through as much of the authenticated user's twitte
 
 **To allow the Cloud Run service to read the secret**: you need to give the service account that is running the Cloud Run container _Secret Manager Secret Accessor_ permissions, to read the secret. You can do this in the Google Cloud Secret Manager console. By default, Cloud Run services or jobs [run as the default Compute Engine service account](https://cloud.google.com/run/docs/configuring/service-accounts).
 
+**To trigger the Cloud Run service with Cloud Scheduler**: you need to give a service account permission to [invoke a cloud run service](https://cloud.google.com/run/docs/triggering/using-scheduler#create-service-account).
+
 ## Create & deploy a Cloud Run service
 
 This service was created with the [kettle-cli](https://github.com/operatorai/kettle-cli), which you can install [using brew](https://github.com/nlathia/kettle-cli#installing-with-brew), and then allows you to start from a [template](https://github.com/nlathia/kettle-templates):
@@ -39,7 +41,6 @@ Finally, you can run this manually with:
 When `dry_run` is set to `true`, not tweets are deleted. Any non-zero value for `max_iterations` limits how many batches of ~200 tweets the service tries to retrieve
 
 Important! By default, this command creates a resource **that is public and can be accessed by anyone on the Internet**. You [will need](https://cloud.google.com/run/docs/triggering/using-scheduler) to change this: when you deploy the service you are using with Cloud Scheduler, make sure you do NOT allow unauthenticated invocations. 
-
 
 ## How much does this cost?
 
