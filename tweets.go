@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,15 +16,6 @@ func parseID(idStr string) (int64, error) {
 		return 0, err
 	}
 	return tweetID, nil
-}
-
-func handleResponse(action string, rsp *http.Response) error {
-	body, err := io.ReadAll(rsp.Body)
-	if err != nil {
-		return err
-	}
-	log.Printf("failed to call %s (status=%d): %s", action, rsp.StatusCode, string(body))
-	return fmt.Errorf("status=%d: %s", rsp.StatusCode, string(body))
 }
 
 // getTwitterClient returns a new go-twitter client using secrets
@@ -47,7 +36,7 @@ func getTwitterClient(ctx context.Context) (*twitter.Client, error) {
 // getTweets returns a slice of tweets up to (and including) maxID.
 func getTweets(client *twitter.Client, maxID int64) ([]twitter.Tweet, error) {
 	log.Printf("retrieving tweets with maxID=%d", maxID)
-	tweets, resp, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
+	tweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
 		// Count specifies the number of Tweets to try and retrieve, up to a maximum of
 		// 200 per distinct request. The value of count is best thought of as a
 		// limit to the number of Tweets to return because suspended or deleted content
@@ -60,9 +49,6 @@ func getTweets(client *twitter.Client, maxID int64) ([]twitter.Tweet, error) {
 	})
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		return nil, handleResponse("UserTimeline", resp)
 	}
 	return tweets, nil
 }
@@ -122,14 +108,13 @@ func deleteTweet(client *twitter.Client, tweet *twitter.Tweet) (*twitter.Tweet, 
 
 	tweet, resp, err := client.Statuses.Destroy(tweetID, &twitter.StatusDestroyParams{})
 	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		if resp.StatusCode == 144 {
+		if resp.StatusCode == http.StatusNotFound {
 			log.Printf("already destroyed: id=%s (%d)", tweet.IDStr, tweet.ID)
-			return tweet, nil
+			return nil, nil
 		}
-		return nil, handleResponse("Destroy", resp)
+
+		log.Printf("failed to call destroy (status=%d)", resp.StatusCode)
+		return nil, err
 	}
 	return tweet, nil
 }
