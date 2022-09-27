@@ -89,7 +89,6 @@ func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 			return nil, err
 		}
 		if delete {
-			log.Printf("candidate for deletion: id=%s", tweet.IDStr)
 			result = append(result, tweet)
 		}
 	}
@@ -100,7 +99,14 @@ func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 
 // deleteTweet destroys a given tweet and returns it if successful
 func deleteTweet(client *twitter.Client, tweet twitter.Tweet) error {
-	log.Printf("destroying: id=%s (%s): %s", tweet.IDStr, tweet.CreatedAt, tweet.Text)
+	log.Printf("destroying: id=%s (created=%s, RT=%d, Fav=%d): %s",
+		tweet.IDStr,
+		tweet.CreatedAt,
+		tweet.RetweetCount,
+		tweet.FavoriteCount,
+		tweet.Text,
+	)
+
 	tweetID, err := parseID(tweet.IDStr)
 	if err != nil {
 		return err
