@@ -1,5 +1,8 @@
 # tweet-destroyer
 
+🔎 A blog post about this project: https://nlathia.github.io/2022/09/Tweet-destroyer.html
+
+
 This Cloud Run service trawls through the authenticated user's twitter timeline that it can and deletes the tweets that match a given set of rules.
 
 The current rules are:
