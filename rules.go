@@ -30,7 +30,10 @@ func shouldDelete(tweet twitter.Tweet) (bool, error) {
 	}
 
 	// if I wrote the tweet
-	if tweet.User.ScreenName == "neal_lathia" {
+	// Retweets can be distinguished from typical Tweets by the existence of a
+	// retweeted_status attribute. This attribute contains a representation of
+	// the original Tweet that was retweeted.
+	if tweet.RetweetedStatus != nil {
 		if tweet.Favorited {
 			// this Tweet has been liked by the authenticating user (me)
 			// so we keep it
