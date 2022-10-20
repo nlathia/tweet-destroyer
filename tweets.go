@@ -10,6 +10,19 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
+func logTweet(state string, tweet twitter.Tweet) {
+	log.Printf("%s: id=%s by %s (is_rt=%t, created=%s, RT=%d, Fav=%d): %s",
+		state,
+		tweet.IDStr,
+		tweet.User.ScreenName,
+		(tweet.RetweetedStatus != nil),
+		tweet.CreatedAt,
+		tweet.RetweetCount,
+		tweet.FavoriteCount,
+		tweet.Text,
+	)
+}
+
 func parseID(idStr string) (int64, error) {
 	tweetID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -88,9 +101,12 @@ func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 		if err != nil {
 			return nil, err
 		}
-		if delete {
-			result = append(result, tweet)
+		if !delete {
+			logTweet("keeping", tweet)
+			continue
 		}
+
+		result = append(result, tweet)
 	}
 
 	log.Printf("found %d candidates to destroy", len(result))
@@ -99,14 +115,7 @@ func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 
 // deleteTweet destroys a given tweet and returns it if successful
 func deleteTweet(client *twitter.Client, tweet twitter.Tweet) error {
-	log.Printf("destroying: id=%s (created=%s, RT=%d, Fav=%d): %s",
-		tweet.IDStr,
-		tweet.CreatedAt,
-		tweet.RetweetCount,
-		tweet.FavoriteCount,
-		tweet.Text,
-	)
-
+	logTweet("destroying", tweet)
 	tweetID, err := parseID(tweet.IDStr)
 	if err != nil {
 		return err
