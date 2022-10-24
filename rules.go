@@ -24,6 +24,12 @@ func hasCountsBelow(tweet twitter.Tweet, threshold int) bool {
 }
 
 func shouldDelete(tweet twitter.Tweet) (bool, error) {
+	if tweet.Favorited {
+		// this Tweet has been liked by the authenticating user (me)
+		// so we keep it
+		return false, nil
+	}
+
 	created, err := tweet.CreatedAtTime()
 	if err != nil {
 		return false, err
@@ -33,13 +39,7 @@ func shouldDelete(tweet twitter.Tweet) (bool, error) {
 	// Retweets can be distinguished from typical Tweets by the existence of a
 	// retweeted_status attribute. This attribute contains a representation of
 	// the original Tweet that was retweeted.
-	if tweet.RetweetedStatus != nil {
-		if tweet.Favorited {
-			// this Tweet has been liked by the authenticating user (me)
-			// so we keep it
-			return false, nil
-		}
-
+	if tweet.RetweetedStatus == nil {
 		switch {
 		case isOlderThan(created, 30*6):
 			// destroy anything older than 6 months with < 25 RTs/faves
