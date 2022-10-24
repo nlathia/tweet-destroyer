@@ -2,21 +2,33 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
 
 func logTweet(state string, tweet twitter.Tweet) {
-	log.Printf("%s: id=%s by %s (is_rt=%t, created=%s, RT=%d, Fav=%d): %s",
+	tweetAge := ""
+	created, err := tweet.CreatedAtTime()
+	if err != nil {
+		tweetAge = "failed to parse"
+	} else {
+		diff := time.Now().UTC().Sub(created).Hours() / 24
+		tweetAge = fmt.Sprintf("%v days ago", diff)
+	}
+
+	log.Printf("%s: id=%s by %s (is_rt=%t, created=%s (%v), RT=%d, Fav=%d): %s",
 		state,
 		tweet.IDStr,
 		tweet.User.ScreenName,
 		(tweet.RetweetedStatus != nil),
 		tweet.CreatedAt,
+		tweetAge,
 		tweet.RetweetCount,
 		tweet.FavoriteCount,
 		tweet.Text,
