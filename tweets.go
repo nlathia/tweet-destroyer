@@ -19,13 +19,12 @@ func logTweet(state string, tweet twitter.Tweet) {
 		tweetAge = "failed to parse"
 	} else {
 		diff := time.Now().UTC().Sub(created).Hours() / 24
-		tweetAge = fmt.Sprintf("%v days ago", diff)
+		tweetAge = fmt.Sprintf("%.2f days ago", diff)
 	}
 
-	log.Printf("%s: id=%s by %s (is_rt=%t, created=%s (%v), RT=%d, Fav=%d): %s",
+	log.Printf("%s: id=%s (is_rt=%t, created=%s (%v), RT=%d, Fav=%d): %s",
 		state,
 		tweet.IDStr,
-		tweet.User.ScreenName,
 		(tweet.RetweetedStatus != nil),
 		tweet.CreatedAt,
 		tweetAge,
