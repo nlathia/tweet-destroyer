@@ -108,15 +108,14 @@ func filterTweets(tweets []twitter.Tweet) ([]twitter.Tweet, error) {
 
 	result := []twitter.Tweet{}
 	for _, tweet := range tweets {
-		delete, err := shouldDelete(tweet)
+		reason, err := reasonToKeep(tweet)
 		if err != nil {
 			return nil, err
 		}
-		if !delete {
-			logTweet("keeping", tweet)
+		if reason != "" {
+			logTweet(reason, tweet)
 			continue
 		}
-
 		result = append(result, tweet)
 	}
 

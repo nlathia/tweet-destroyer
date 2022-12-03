@@ -44,7 +44,7 @@ func TestIsOlderThan(t *testing.T) {
 	}
 }
 
-func TestShouldDelete(t *testing.T) {
+func TestReasonToKeep(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name   string
@@ -52,12 +52,13 @@ func TestShouldDelete(t *testing.T) {
 		delete bool
 	}{
 		{
-			name: "not written by me",
+			name: "not written by me, recent",
 			tweet: twitter.Tweet{
 				CreatedAt: time.Now().UTC().Format("Mon Jan 02 15:04:05 -0700 2006"),
 				User: &twitter.User{
 					ScreenName: "twitter",
 				},
+				RetweetedStatus: &twitter.Tweet{},
 			},
 			delete: false,
 		},
@@ -68,6 +69,7 @@ func TestShouldDelete(t *testing.T) {
 				User: &twitter.User{
 					ScreenName: "twitter",
 				},
+				RetweetedStatus: &twitter.Tweet{},
 			},
 			delete: true,
 		},
@@ -129,9 +131,13 @@ func TestShouldDelete(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			delete, err := shouldDelete(testCase.tweet)
+			reason, err := reasonToKeep(testCase.tweet)
 			require.NoError(t, err)
-			assert.Equal(t, testCase.delete, delete)
+			if testCase.delete {
+				assert.Equal(t, "", reason)
+			} else {
+				assert.NotNil(t, reason)
+			}
 		})
 	}
 }
