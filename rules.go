@@ -28,12 +28,6 @@ func hasCountsBelow(tweet twitter.Tweet, threshold int) string {
 }
 
 func reasonToKeep(tweet twitter.Tweet) (string, error) {
-	if tweet.Favorited {
-		// this Tweet has been liked by the authenticating user (me)
-		// so we keep it
-		return "self-fave", nil
-	}
-
 	created, err := tweet.CreatedAtTime()
 	if err != nil {
 		return "", err
@@ -44,6 +38,12 @@ func reasonToKeep(tweet twitter.Tweet) (string, error) {
 	// retweeted_status attribute. This attribute contains a representation of
 	// the original Tweet that was retweeted.
 	if tweet.RetweetedStatus == nil {
+		if tweet.Favorited {
+			// this Tweet has been liked by the authenticating user (me)
+			// so we keep it
+			return "self-fave", nil
+		}
+
 		thresholds := map[int]int{
 			30 * 6: 25,
 			30:     10,

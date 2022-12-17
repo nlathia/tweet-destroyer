@@ -30,7 +30,7 @@ func handleDeleteTweets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client to query the twitter API
-	twitterClient, err := getTwitterClient(r.Context())
+	twitterClient, err := getTwitterClient(r.Context(), nil)
 	if err != nil {
 		log.Printf("%v", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

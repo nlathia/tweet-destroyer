@@ -44,17 +44,27 @@ func parseID(idStr string) (int64, error) {
 
 // getTwitterClient returns a new go-twitter client using secrets
 // that have been stored in Google Cloud's Secret Manager
-func getTwitterClient(ctx context.Context) (*twitter.Client, error) {
-	secret, err := readSecret(ctx)
-	if err != nil {
-		return nil, err
+func getTwitterClient(ctx context.Context, secret *Secret) (*twitter.Client, error) {
+	if secret == nil {
+		var err error
+		secret, err = readSecret(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	config := oauth1.NewConfig(secret.ConsumerKey, secret.ConsumerSecret)
 	token := oauth1.NewToken(secret.Token, secret.TokenSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
-
 	return twitter.NewClient(httpClient), nil
+}
+
+func getTweet(client *twitter.Client, id int64) (*twitter.Tweet, error) {
+	tweet, _, err := client.Statuses.Show(id, nil)
+	if err != nil {
+		return nil, err
+	}
+	return tweet, nil
 }
 
 // getTweets returns a slice of tweets up to (and including) maxID.
